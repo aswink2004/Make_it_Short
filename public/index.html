@@ -230,29 +230,29 @@
       });
     }
 
-    async function loadLinks() {
-      const res = await fetch('/api/links');
-      const links = await res.json();
-      const list = document.getElementById('linksList');
+    // async function loadLinks() {
+    //   const res = await fetch('/api/links');
+    //   const links = await res.json();
+    //   const list = document.getElementById('linksList');
 
-      if (links.length === 0) {
-        list.innerHTML = '<p style="color:#475569;font-size:0.9rem;">No links yet.</p>';
-        return;
-      }
+    //   if (links.length === 0) {
+    //     list.innerHTML = '<p style="color:#475569;font-size:0.9rem;">No links yet.</p>';
+    //     return;
+    //   }
 
-      list.innerHTML = links.reverse().map(link => `
-        <div class="link-item">
-          <div class="link-info">
-            <div class="short"><a href="${link.shortUrl}" target="_blank" style="color:inherit;text-decoration:none;">${link.shortUrl}</a></div>
-            <div class="original">${link.originalUrl}</div>
-          </div>
-          <div class="link-clicks">${link.clicks} clicks</div>
-        </div>
-      `).join('');
-    }
+    //   list.innerHTML = links.reverse().map(link => `
+    //     <div class="link-item">
+    //       <div class="link-info">
+    //         <div class="short"><a href="${link.shortUrl}" target="_blank" style="color:inherit;text-decoration:none;">${link.shortUrl}</a></div>
+    //         <div class="original">${link.originalUrl}</div>
+    //       </div>
+    //       <div class="link-clicks">${link.clicks} clicks</div>
+    //     </div>
+    //   `).join('');
+    // }
 
     
-    loadLinks();
+    // loadLinks();
   </script>
 </body>
 </html>
