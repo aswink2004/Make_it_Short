@@ -181,7 +181,14 @@
 
     async function shortenUrl() {
       const url = document.getElementById('urlInput').value.trim();
-      const customCode = document.getElementById('customCode').value.trim();
+      const customCodeInput = document.getElementById('customCode').value.trim();
+
+if (customCodeInput && customCodeInput.includes('http')) {
+  showError('Custom alias cannot contain a URL');
+  return;
+}
+
+const customCode = customCodeInput;
       const errorBox = document.getElementById('errorBox');
       const resultBox = document.getElementById('resultBox');
 

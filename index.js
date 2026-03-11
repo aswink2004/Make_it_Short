@@ -94,7 +94,17 @@ app.post('/shorten', async (req, res) => {
 
 
     // Generate code
-    let code = customCode ? customCode.trim() : nanoid(6);
+    // let code = customCode ? customCode.trim() : nanoid(6);
+    let code;
+
+if (customCode) {
+  if (customCode.includes('http') || customCode.includes('/')) {
+    return res.status(400).json({ error: "Invalid custom alias" });
+  }
+  code = customCode.trim();
+} else {
+  code = nanoid(6);
+}
 
     const [check] = await db.query(
       "SELECT code FROM urls WHERE code = ?",
