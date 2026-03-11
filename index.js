@@ -99,7 +99,7 @@ app.post('/shorten', async (req, res) => {
 });
 
 // Get all urls
-app.get('/api/urls', async (req, res) => {
+app.get('/api/links', async (req, res) => {
   try {
     const baseUrl = getBaseUrl(req);
     const [urls] = await db.query('SELECT * FROM urls ORDER BY created_at DESC');
