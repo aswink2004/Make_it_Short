@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>URL Shortener</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #073d66;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #7c3aed;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      margin-bottom: 36px;
+      font-size: 1rem;
+    }
+
+    .card {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%;
+      max-width: 560px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      margin-bottom: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid #334155;
+      border-radius: 10px;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    input:focus { border-color: #7c3aed; }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      background: #7c3aed;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover { background: #6d28d9; }
+
+    .result {
+      margin-top: 20px;
+      padding: 16px;
+      background: #0f172a;
+      border-radius: 10px;
+      border: 1.5px solid #7c3aed;
+      display: none;
+    }
+
+    .result p { font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px; }
+
+    .result-link {
+      font-size: 1.05rem;
+      color: #a78bfa;
+      font-weight: 600;
+      word-break: break-all;
+    }
+
+    .copy-btn {
+      margin-top: 10px;
+      padding: 8px;
+      background: #334155;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 8px;
+    }
+
+    .copy-btn:hover { background: #475569; }
+
+    .error {
+      margin-top: 14px;
+      padding: 12px 16px;
+      background: #450a0a;
+      border: 1px solid #dc2626;
+      border-radius: 10px;
+      color: #fca5a5;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .links-section {
+      margin-top: 40px;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .links-section h2 {
+      font-size: 1.2rem;
+      color: #94a3b8;
+      margin-bottom: 14px;
+    }
+
+    .link-item {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .link-info .short { color: #a78bfa; font-weight: 700; font-size: 0.95rem; }
+    .link-info .original { color: #64748b; font-size: 0.78rem; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320px; }
+    .link-clicks { color: #34d399; font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
+  </style>
+</head>
+<body>
+
+  <h1>🔗 Make it Short</h1>
+  <p class="subtitle">Paste a long URL, get a short one instantly</p>
+
+  <div class="card">
+    <label for="urlInput">Long URL</label>
+    <input type="url" id="urlInput" placeholder="https://example.com/very/long/url..." />
+
+    <label for="customCode">Custom Alias (optional)</label>
+    <input type="text" id="customCode" placeholder="e.g. my-link" maxlength="20" />
+
+    <button onclick="shortenUrl()">Shorten URL</button>
+
+    <div class="error" id="errorBox"></div>
+
+    <div class="result" id="resultBox">
+      <p>Your short URL:</p>
+      <div class="result-link" id="shortUrlDisplay"></div>
+      <button class="copy-btn" onclick="copyUrl()">📋 Copy to Clipboard</button>
+    </div>
+  </div>
+
+  <div class="links-section">
+    <h2>📊 Recent Links</h2>
+    <div id="linksList"></div>
+  </div>
+
+  <script>
+    let lastShortUrl = '';
+
+    async function shortenUrl() {
+      const url = document.getElementById('urlInput').value.trim();
+      const customCode = document.getElementById('customCode').value.trim();
+      const errorBox = document.getElementById('errorBox');
+      const resultBox = document.getElementById('resultBox');
+
+      errorBox.style.display = 'none';
+      resultBox.style.display = 'none';
+
+      if (!url) {
+        showError('Please enter a URL');
+        return;
+      }
+
+      try {
+        const res = await fetch('/shorten', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, customCode })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          showError(data.error);
+          return;
+        }
+
+        lastShortUrl = data.shortUrl;
+        document.getElementById('shortUrlDisplay').textContent = data.shortUrl;
+        resultBox.style.display = 'block';
+        loadLinks();
+      } catch (err) {
+        showError('Something went wrong. Is the server running?');
+      }
+    }
+
+    function showError(msg) {
+      const errorBox = document.getElementById('errorBox');
+      errorBox.textContent = '⚠️ ' + msg;
+      errorBox.style.display = 'block';
+    }
+
+    function copyUrl() {
+      navigator.clipboard.writeText(lastShortUrl).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.textContent = '✅ Copied!';
+        setTimeout(() => btn.textContent = '📋 Copy to Clipboard', 2000);
+      });
+    }
+
+    async function loadLinks() {
+      const res = await fetch('/api/links');
+      const links = await res.json();
+      const list = document.getElementById('linksList');
+
+      if (links.length === 0) {
+        list.innerHTML = '<p style="color:#475569;font-size:0.9rem;">No links yet.</p>';
+        return;
+      }
+
+      list.innerHTML = links.reverse().map(link => `
+        <div class="link-item">
+          <div class="link-info">
+            <div class="short"><a href="${link.shortUrl}" target="_blank" style="color:inherit;text-decoration:none;">${link.shortUrl}</a></div>
+            <div class="original">${link.originalUrl}</div>
+          </div>
+          <div class="link-clicks">${link.clicks} clicks</div>
+        </div>
+      `).join('');
+    }
+
+    
+    loadLinks();
+  </script>
+</body>
+</html>
