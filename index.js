@@ -11,10 +11,11 @@ app.use(express.static('public'));
 
 // ─── MySQL Connection ──────────────────────────────────────────
 const db = mysql.createPool({
-  host: 'localhost',
-  user: 'root',        // XAMPP default user
-  password: '',        // XAMPP default password (empty)
-  database: 'url_shortener',
+  host: process.env.MYSQL_HOST || 'localhost',
+  port: process.env.MYSQL_PORT || 3306,
+  user: process.env.MYSQL_USER || 'root',
+  password: process.env.MYSQL_PASSWORD || '',
+  database: process.env.MYSQL_NAME || 'url_shortener',
   waitForConnections: true,
 });
 
