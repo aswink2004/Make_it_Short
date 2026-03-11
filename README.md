@@ -2,18 +2,8 @@
 
 A simple URL shortener with a clean UI, custom aliases, and click tracking.
 
-## 📁 Project Structure
 
-```
-url-shortener/
-├── index.js          ← Express server (backend)
-├── package.json      ← Dependencies
-└── public/
-    ├── index.html    ← Frontend UI
-    └── 404.html      ← Not found page
-```
-
-## 🚀 How to Run
+## How to Run
 
 ### 1. Install Node.js
 Download from https://nodejs.org (v16+ recommended)
