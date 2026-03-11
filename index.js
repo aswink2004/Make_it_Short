@@ -15,7 +15,7 @@ const db = mysql.createPool({
   port: process.env.MYSQL_PORT || 3306,
   user: process.env.MYSQL_USER || 'root',
   password: process.env.MYSQL_PASSWORD || '',
-  database: process.env.MYSQL_NAME || 'url_shortener',
+ database: process.env.MYSQL_NAME || process.env.MYSQL_DATABASE || 'url_shortener',
   waitForConnections: true,
 });
 
