@@ -95,6 +95,7 @@ app.post('/shorten', async (req, res) => {
 
     // Generate code
     // let code = customCode ? customCode.trim() : nanoid(6);
+    
     let code;
 
 if (customCode) {
@@ -131,7 +132,6 @@ if (customCode) {
       }
     }
 
-
     const shortUrl = `${baseUrl}/${code}`;
 
     await db.query(
@@ -156,7 +156,6 @@ if (customCode) {
     });
   }
 });
-
 
 // ─── Get All Links ───────────────────────────────
 app.get('/api/links', async (req, res) => {

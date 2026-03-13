@@ -8,7 +8,9 @@
     "dev": "nodemon index.js"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.19.1",
     "mysql3": "^0.7.5",
     "nanoid": "^3.3.6"
