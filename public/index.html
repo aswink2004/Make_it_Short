@@ -1,270 +1,444 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>URL Shortener</title>
-  <link rel="icon" type="image/png" href="D:\project\employee\public\stopwatch.png">
+  <title>Make it Short</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #073d66;
-      color: #e2e8f0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px 16px;
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0f172a;--card:#1e293b;--border:#334155;--purple:#7c3aed;
+      --purple-h:#6d28d9;--text:#e2e8f0;--muted:#94a3b8;--dim:#64748b;
+      --green:#34d399;--red:#f87171;--red-bg:#450a0a;--red-border:#dc2626;
+      --success-bg:#052e16;--success-border:#16a34a;--success-text:#86efac;
     }
+    body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 
-    h1 {
-      font-size: 2.4rem;
-      font-weight: 800;
-      color: #7c3aed;
-      margin-bottom: 6px;
+    /* ── PAGES ── */
+    .page{display:none;min-height:100vh;align-items:center;justify-content:center;padding:24px 16px;flex-direction:column}
+    .page.active{display:flex}
+
+    /* ── AUTH PAGES ── */
+    .auth-box{background:var(--card);border-radius:20px;padding:40px 36px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,0.4)}
+    .auth-logo{text-align:center;margin-bottom:28px}
+    .auth-logo h1{font-size:1.8rem;font-weight:800;color:var(--purple)}
+    .auth-logo p{color:var(--muted);font-size:0.9rem;margin-top:4px}
+    .auth-box h2{font-size:1.3rem;font-weight:700;margin-bottom:24px;color:var(--text)}
+    .field{margin-bottom:18px}
+    .field label{display:block;font-size:0.78rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px}
+    .field input{width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);font-size:0.95rem;outline:none;transition:border .2s}
+    .field input:focus{border-color:var(--purple)}
+    .btn{width:100%;padding:13px;background:var(--purple);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;transition:background .2s}
+    .btn:hover{background:var(--purple-h)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .switch{text-align:center;margin-top:20px;font-size:0.9rem;color:var(--dim)}
+    .switch span{color:#a78bfa;cursor:pointer;font-weight:600}
+    .switch span:hover{text-decoration:underline}
+    .msg{margin-top:14px;padding:12px 16px;border-radius:10px;font-size:0.88rem;display:none}
+    .msg.error{background:var(--red-bg);border:1px solid var(--red-border);color:var(--red)}
+    .msg.success{background:var(--success-bg);border:1px solid var(--success-border);color:var(--success-text)}
+
+    /* ── DASHBOARD ── */
+    #dashPage{padding:0;flex-direction:column;align-items:stretch;justify-content:flex-start}
+    .topbar{background:var(--card);border-bottom:1px solid var(--border);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+    .topbar-logo{font-size:1.3rem;font-weight:800;color:var(--purple)}
+    .topbar-right{display:flex;align-items:center;gap:14px}
+    .topbar-user{color:var(--muted);font-size:0.9rem}
+    .topbar-user span{color:#a78bfa;font-weight:700}
+    .logout-btn{padding:8px 16px;background:transparent;border:1.5px solid var(--border);border-radius:8px;color:var(--muted);font-size:0.85rem;font-weight:600;cursor:pointer;transition:.2s}
+    .logout-btn:hover{border-color:var(--red);color:var(--red)}
+
+    .dash-body{max-width:820px;margin:0 auto;padding:36px 20px;width:100%}
+
+    /* Stats */
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px}
+    .stat-card{background:var(--card);border-radius:14px;padding:22px 24px;border:1px solid var(--border)}
+    .stat-card .label{font-size:0.78rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+    .stat-card .value{font-size:2rem;font-weight:800;color:var(--text)}
+    .stat-card .value.green{color:var(--green)}
+    .stat-card .value.purple{color:#a78bfa}
+
+    /* Shorten card */
+    .shorten-card{background:var(--card);border-radius:16px;padding:28px;margin-bottom:32px;border:1px solid var(--border)}
+    .shorten-card h2{font-size:1.1rem;font-weight:700;margin-bottom:20px;color:var(--text)}
+    .shorten-row{display:flex;gap:10px;flex-wrap:wrap}
+    .shorten-row input{flex:1;min-width:200px;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);font-size:0.95rem;outline:none;transition:border .2s}
+    .shorten-row input:focus{border-color:var(--purple)}
+    .shorten-row .alias-input{max-width:160px}
+    .shorten-btn{padding:12px 22px;background:var(--purple);color:#fff;border:none;border-radius:10px;font-size:0.95rem;font-weight:700;cursor:pointer;transition:background .2s;white-space:nowrap}
+    .shorten-btn:hover{background:var(--purple-h)}
+    .result-bar{margin-top:14px;padding:14px 18px;background:var(--bg);border-radius:10px;border:1.5px solid var(--purple);display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .result-bar .short-link{color:#a78bfa;font-weight:700;font-size:0.95rem;word-break:break-all}
+    .copy-btn{padding:8px 16px;background:var(--border);color:var(--text);border:none;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .2s}
+    .copy-btn:hover{background:#475569}
+    .shorten-msg{margin-top:10px;padding:10px 14px;border-radius:8px;font-size:0.85rem;display:none}
+    .shorten-msg.error{background:var(--red-bg);border:1px solid var(--red-border);color:var(--red)}
+    .shorten-msg.info{background:#1e3a5f;border:1px solid #3b82f6;color:#93c5fd}
+
+    /* Links table */
+    .links-card{background:var(--card);border-radius:16px;padding:28px;border:1px solid var(--border)}
+    .links-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+    .links-header h2{font-size:1.1rem;font-weight:700;color:var(--text)}
+    .links-count{font-size:0.82rem;color:var(--muted);background:var(--border);padding:4px 12px;border-radius:20px}
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse}
+    th{text-align:left;font-size:0.75rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:10px 14px;border-bottom:1px solid var(--border)}
+    td{padding:13px 14px;border-bottom:1px solid #1e293b;font-size:0.88rem;vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:rgba(255,255,255,.02)}
+    .td-short a{color:#a78bfa;font-weight:600;text-decoration:none}
+    .td-short a:hover{text-decoration:underline}
+    .td-original{color:var(--dim);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .td-clicks{color:var(--green);font-weight:700}
+    .td-date{color:var(--dim);white-space:nowrap}
+    .del-btn{padding:5px 12px;background:transparent;border:1px solid var(--border);color:var(--dim);border-radius:6px;font-size:0.78rem;cursor:pointer;transition:.2s}
+    .del-btn:hover{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+    .empty-state{text-align:center;padding:48px 20px;color:var(--dim)}
+    .empty-state .icon{font-size:2.5rem;margin-bottom:12px}
+    .empty-state p{font-size:0.95rem}
+
+    @media(max-width:600px){
+      .stats{grid-template-columns:1fr 1fr}
+      .auth-box{padding:28px 20px}
+      .topbar{padding:0 16px}
+      .dash-body{padding:20px 12px}
+      .shorten-row{flex-direction:column}
+      .shorten-row .alias-input{max-width:100%}
     }
-
-    .subtitle {
-      color: #94a3b8;
-      margin-bottom: 36px;
-      font-size: 1rem;
-    }
-
-    .card {
-      background: #1e293b;
-      border-radius: 16px;
-      padding: 32px;
-      width: 100%;
-      max-width: 560px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-    }
-
-    label {
-      display: block;
-      font-size: 0.85rem;
-      color: #94a3b8;
-      margin-bottom: 6px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px 16px;
-      border: 1.5px solid #334155;
-      border-radius: 10px;
-      background: #0f172a;
-      color: #e2e8f0;
-      font-size: 0.95rem;
-      margin-bottom: 16px;
-      outline: none;
-      transition: border 0.2s;
-    }
-
-    input:focus { border-color: #7c3aed; }
-
-    button {
-      width: 100%;
-      padding: 13px;
-      background: #7c3aed;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    button:hover { background: #6d28d9; }
-
-    .result {
-      margin-top: 20px;
-      padding: 16px;
-      background: #0f172a;
-      border-radius: 10px;
-      border: 1.5px solid #7c3aed;
-      display: none;
-    }
-
-    .result p { font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px; }
-
-    .result-link {
-      font-size: 1.05rem;
-      color: #a78bfa;
-      font-weight: 600;
-      word-break: break-all;
-    }
-
-    .copy-btn {
-      margin-top: 10px;
-      padding: 8px;
-      background: #334155;
-      font-size: 0.85rem;
-      font-weight: 600;
-      border-radius: 8px;
-    }
-
-    .copy-btn:hover { background: #475569; }
-
-    .error {
-      margin-top: 14px;
-      padding: 12px 16px;
-      background: #450a0a;
-      border: 1px solid #dc2626;
-      border-radius: 10px;
-      color: #fca5a5;
-      font-size: 0.9rem;
-      display: none;
-    }
-
-    .links-section {
-      margin-top: 40px;
-      width: 100%;
-      max-width: 560px;
-    }
-
-    .links-section h2 {
-      font-size: 1.2rem;
-      color: #94a3b8;
-      margin-bottom: 14px;
-    }
-
-    .link-item {
-      background: #1e293b;
-      border-radius: 12px;
-      padding: 14px 18px;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .link-info .short { color: #a78bfa; font-weight: 700; font-size: 0.95rem; }
-    .link-info .original { color: #64748b; font-size: 0.78rem; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320px; }
-    .link-clicks { color: #34d399; font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
   </style>
 </head>
 <body>
 
-  <h1>🔗 Make it Short</h1>
-  <p class="subtitle">Paste a long URL, get a short one instantly</p>
+<!-- ══ LOGIN PAGE ══════════════════════════════════════════ -->
+<div class="page active" id="loginPage">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <h1>🔗 Make it Short</h1>
+      <p>Sign in to manage your links</p>
+    </div>
+    <h2>Welcome back 👋</h2>
 
-  <div class="card">
-    <label for="urlInput">Long URL</label>
-    <input type="url" id="urlInput" placeholder="https://example.com/very/long/url..." />
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="you@example.com" onkeydown="if(event.key==='Enter')login()"/>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"/>
+    </div>
 
-    <label for="customCode">Custom Alias (optional)</label>
-    <input type="text" id="customCode" placeholder="e.g. my-link" maxlength="20" />
+    <button class="btn" id="loginBtn" onclick="login()">Login</button>
+    <div class="msg error" id="loginErr"></div>
 
-    <button onclick="shortenUrl()">Shorten URL</button>
+    <div class="switch">Don't have an account? <span onclick="showPage('signupPage')">Sign up free</span></div>
+  </div>
+</div>
 
-    <div class="error" id="errorBox"></div>
+<!-- ══ SIGNUP PAGE ═════════════════════════════════════════ -->
+<div class="page" id="signupPage">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <h1>🔗 Make it Short</h1>
+      <p>Create your free account</p>
+    </div>
+    <h2>Create account 🚀</h2>
 
-    <div class="result" id="resultBox">
-      <p>Your short URL:</p>
-      <div class="result-link" id="shortUrlDisplay"></div>
-      <button class="copy-btn" onclick="copyUrl()">📋 Copy to Clipboard</button>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="signupUsername" placeholder="yourname"/>
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="signupEmail" placeholder="you@example.com"/>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="signupPassword" placeholder="Min 6 characters" onkeydown="if(event.key==='Enter')signup()"/>
+    </div>
+
+    <button class="btn" id="signupBtn" onclick="signup()">Create Account</button>
+    <div class="msg error" id="signupErr"></div>
+    <div class="msg success" id="signupOk"></div>
+
+    <div class="switch">Already have an account? <span onclick="showPage('loginPage')">Login</span></div>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD PAGE ══════════════════════════════════════ -->
+<div class="page" id="dashPage">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-logo">🔗 Make it Short</div>
+    <div class="topbar-right">
+      <div class="topbar-user">Hi, <span id="topUsername"></span> 👋</div>
+      <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
   </div>
 
-  <div class="links-section">
-    <!-- <h2>📊 Recent Links</h2> -->
-    <div id="linksList"></div>
+  <div class="dash-body">
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="label">Total Links</div>
+        <div class="value purple" id="statLinks">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Total Clicks</div>
+        <div class="value green" id="statClicks">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Avg Clicks</div>
+        <div class="value" id="statAvg">0</div>
+      </div>
+    </div>
+
+    <!-- Shorten -->
+    <div class="shorten-card">
+      <h2>🔗 Shorten a new URL</h2>
+      <div class="shorten-row">
+        <input type="url" id="urlInput" placeholder="Paste your long URL here... https://"/>
+        <input type="text" class="alias-input" id="customCode" placeholder="Custom alias (optional)" maxlength="20"/>
+        <button class="shorten-btn" onclick="shortenUrl()">Shorten</button>
+      </div>
+      <div class="shorten-msg" id="shortenMsg"></div>
+      <div class="result-bar" id="resultBar">
+        <div class="short-link" id="resultLink"></div>
+        <button class="copy-btn" onclick="copyLink()">📋 Copy</button>
+      </div>
+    </div>
+
+    <!-- Links Table -->
+    <div class="links-card">
+      <div class="links-header">
+        <h2>📊 Your Links</h2>
+        <span class="links-count" id="linksCount">0 links</span>
+      </div>
+      <div class="table-wrap">
+        <div id="linksTable"></div>
+      </div>
+    </div>
+
   </div>
+</div>
 
-  <script>
-    let lastShortUrl = '';
+<script>
+  let token = localStorage.getItem('token');
+  let currentShortUrl = '';
 
-    async function shortenUrl() {
-      const url = document.getElementById('urlInput').value.trim();
-      const customCodeInput = document.getElementById('customCode').value.trim();
+  // ── On load
+  window.onload = () => {
+    token ? loadDashboard() : showPage('loginPage');
+  };
 
-if (customCodeInput && customCodeInput.includes('http')) {
-  showError('Custom alias cannot contain a URL');
-  return;
-}
+  // ── Page switcher
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
 
-const customCode = customCodeInput;
-      const errorBox = document.getElementById('errorBox');
-      const resultBox = document.getElementById('resultBox');
+  // ── SIGNUP
+  async function signup() {
+    const username = val('signupUsername');
+    const email    = val('signupEmail');
+    const password = val('signupPassword');
+    clearMsgs('signupErr','signupOk');
 
-      errorBox.style.display = 'none';
-      resultBox.style.display = 'none';
+    if (!username || !email || !password)
+      return showMsg('signupErr','error','All fields are required');
 
-      if (!url) {
-        showError('Please enter a URL');
-        return;
-      }
+    setBtnLoading('signupBtn', true);
+    const res  = await post('/auth/signup', { username, email, password });
+    const data = await res.json();
+    setBtnLoading('signupBtn', false);
 
-      try {
-        const res = await fetch('/shorten', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url, customCode })
-        });
+    if (!res.ok) return showMsg('signupErr','error', data.error);
 
-        const data = await res.json();
+    saveSession(data);
+    showMsg('signupOk','success','Account created! Loading dashboard...');
+    setTimeout(() => loadDashboard(), 800);
+  }
 
-        if (!res.ok) {
-          showError(data.error);
-          return;
-        }
+  // ── LOGIN
+  async function login() {
+    const email    = val('loginEmail');
+    const password = val('loginPassword');
+    clearMsgs('loginErr');
 
-        lastShortUrl = data.shortUrl;
-        document.getElementById('shortUrlDisplay').textContent = data.shortUrl;
-        resultBox.style.display = 'block';
-        // loadLinks();
-      } catch (err) {
-        showError('Something went wrong. Is the server running?');
-      }
+    if (!email || !password)
+      return showMsg('loginErr','error','Email and password are required');
+
+    setBtnLoading('loginBtn', true);
+    const res  = await post('/auth/login', { email, password });
+    const data = await res.json();
+    setBtnLoading('loginBtn', false);
+
+    if (!res.ok) return showMsg('loginErr','error', data.error);
+
+    saveSession(data);
+    loadDashboard();
+  }
+
+  // ── LOGOUT
+  function logout() {
+    localStorage.clear();
+    token = null;
+    showPage('loginPage');
+  }
+
+  // ── LOAD DASHBOARD
+  async function loadDashboard() {
+    const res  = await authGet('/api/dashboard');
+    if (res.status === 401 || res.status === 403) return logout();
+    const data = await res.json();
+
+    document.getElementById('topUsername').textContent = data.username || localStorage.getItem('username');
+    document.getElementById('statLinks').textContent   = data.totalLinks;
+    document.getElementById('statClicks').textContent  = data.totalClicks;
+    document.getElementById('statAvg').textContent     =
+      data.totalLinks > 0 ? (data.totalClicks / data.totalLinks).toFixed(1) : 0;
+    document.getElementById('linksCount').textContent  = `${data.totalLinks} link${data.totalLinks !== 1 ? 's' : ''}`;
+
+    renderTable(data.links);
+    showPage('dashPage');
+  }
+
+  // ── SHORTEN URL
+  async function shortenUrl() {
+    const url        = val('urlInput');
+    const customCode = val('customCode');
+    const msgEl      = document.getElementById('shortenMsg');
+    const barEl      = document.getElementById('resultBar');
+
+    msgEl.style.display = 'none';
+    barEl.style.display = 'none';
+
+    if (!url) return showMsg('shortenMsg','error','Please enter a URL');
+
+    const res  = await authPost('/shorten', { url, customCode });
+    if (res.status === 401 || res.status === 403) return logout();
+    const data = await res.json();
+
+    if (!res.ok) return showMsg('shortenMsg','error', data.error);
+
+    if (data.existing)
+      showMsg('shortenMsg','info','⚡ This URL was already shortened — returning your existing link!');
+
+    currentShortUrl = data.shortUrl;
+    document.getElementById('resultLink').textContent = data.shortUrl;
+    barEl.style.display = 'flex';
+
+    document.getElementById('urlInput').value   = '';
+    document.getElementById('customCode').value = '';
+
+    loadDashboard();
+  }
+
+  // ── COPY LINK
+  function copyLink() {
+    navigator.clipboard.writeText(currentShortUrl).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => btn.textContent = '📋 Copy', 2000);
+    });
+  }
+
+  // ── DELETE LINK
+  async function deleteLink(code) {
+    if (!confirm('Delete this link?')) return;
+    const res = await fetch(`/api/links/${code}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.ok) loadDashboard();
+  }
+
+  // ── RENDER TABLE
+  function renderTable(links) {
+    const el = document.getElementById('linksTable');
+    if (!links || links.length === 0) {
+      el.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">🔗</div>
+          <p>No links yet. Shorten your first URL above!</p>
+        </div>`;
+      return;
     }
 
-    function showError(msg) {
-      const errorBox = document.getElementById('errorBox');
-      errorBox.textContent = '⚠️ ' + msg;
-      errorBox.style.display = 'block';
-    }
+    el.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Short URL</th>
+            <th>Original URL</th>
+            <th>Clicks</th>
+            <th>Created</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${links.map(link => `
+            <tr>
+              <td class="td-short">
+                <a href="${link.short_url}" target="_blank">${link.short_url}</a>
+              </td>
+              <td class="td-original" title="${link.original_url}">
+                ${link.original_url}
+              </td>
+              <td class="td-clicks">${link.clicks}</td>
+              <td class="td-date">${formatDate(link.created_at)}</td>
+              <td>
+                <button class="del-btn" onclick="deleteLink('${link.code}')">Delete</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+  }
 
-    function copyUrl() {
-      navigator.clipboard.writeText(lastShortUrl).then(() => {
-        const btn = document.querySelector('.copy-btn');
-        btn.textContent = '✅ Copied!';
-        setTimeout(() => btn.textContent = '📋 Copy to Clipboard', 2000);
-      });
-    }
+  // ── HELPERS
+  function val(id) { return document.getElementById(id).value.trim(); }
 
-    // async function loadLinks() {
-    //   const res = await fetch('/api/links');
-    //   const links = await res.json();
-    //   const list = document.getElementById('linksList');
+  function saveSession(data) {
+    token = data.token;
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('username', data.username);
+  }
 
-    //   if (links.length === 0) {
-    //     list.innerHTML = '<p style="color:#475569;font-size:0.9rem;">No links yet.</p>';
-    //     return;
-    //   }
+  function showMsg(id, type, msg) {
+    const el = document.getElementById(id);
+    el.className = `msg ${type}`;
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
 
-    //   list.innerHTML = links.reverse().map(link => `
-    //     <div class="link-item">
-    //       <div class="link-info">
-    //         <div class="short"><a href="${link.shortUrl}" target="_blank" style="color:inherit;text-decoration:none;">${link.shortUrl}</a></div>
-    //         <div class="original">${link.originalUrl}</div>
-    //       </div>
-    //       <div class="link-clicks">${link.clicks} clicks</div>
-    //     </div>
-    //   `).join('');
-    // }
+  function clearMsgs(...ids) {
+    ids.forEach(id => { document.getElementById(id).style.display = 'none'; });
+  }
 
-    
-    // loadLinks();
-  </script>
+  function setBtnLoading(id, loading) {
+    const btn = document.getElementById(id);
+    btn.disabled   = loading;
+    btn.textContent = loading ? 'Please wait...' : (id === 'loginBtn' ? 'Login' : 'Create Account');
+  }
 
+  function post(url, body) {
+    return fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  }
+
+  function authGet(url) {
+    return fetch(url, { headers:{ Authorization:`Bearer ${token}` } });
+  }
+
+  function authPost(url, body) {
+    return fetch(url, { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body:JSON.stringify(body) });
+  }
+
+  function formatDate(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+  }
+</script>
 </body>
-<footer>
-  <p>© bruceWayne</p>
-</footer>
 </html>
